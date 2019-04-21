@@ -13,6 +13,7 @@ def run_py(path: str, globals: dict=None, locals: dict=None):
     '''
     run a file like `python ?`.
     '''
+
     py_file = FileInfo(path)
     if not py_file.is_file():
         raise RuntimeError(f'{path} is not a file')
@@ -28,6 +29,7 @@ def run_py_m(path: str, globals: dict=None, locals: dict=None):
     '''
     run a dir like `python -m ?`.
     '''
+
     node = NodeInfo.from_path(path)
     if not node:
         raise RuntimeError(f'{path} is not a file or dir')
@@ -48,3 +50,28 @@ def run_py_m(path: str, globals: dict=None, locals: dict=None):
     globals['__name__'] = '__main__'
     globals['__package__'] = pkg_dir.path.name
     exec(main_file.read_text(), globals, locals)
+
+def exec_pkg_py(path: str, globals: dict=None, locals: dict=None):
+    '''
+    exec a `.py` file which inside a package.
+    the `.py` file can use relative import.
+
+    this is helpful for dynimic import some files.
+    '''
+
+    from .utils import get_pyinfo
+
+    node = NodeInfo.from_path(path)
+    if not node.is_file():
+        raise FileNotFoundError(f'{path} is not a file')
+
+    pi = get_pyinfo(node)
+    pkg_init = pi.pkg_root
+    pkg_dir = pkg_init.get_parent()
+    sys.path.insert(0, pkg_dir.get_parent())
+    if globals is None:
+        globals = {}
+    globals['__file__'] = pi.path
+    globals['__package__'] = pi.pkg_name
+    globals['__name__'] = pi.name
+    exec(node.read_text(), globals, locals)
