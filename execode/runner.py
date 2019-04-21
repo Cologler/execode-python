@@ -16,7 +16,7 @@ def run_py(path: str, globals: dict=None, locals: dict=None):
 
     py_file = FileInfo(path)
     if not py_file.is_file():
-        raise RuntimeError(f'{path} is not a file')
+        raise FileNotFoundError(f'{path} is not a file')
 
     sys.path.insert(0, py_file.path.dirname)
     if globals is None:
@@ -32,13 +32,13 @@ def run_py_m(path: str, globals: dict=None, locals: dict=None):
 
     node = NodeInfo.from_path(path)
     if not node:
-        raise RuntimeError(f'{path} is not a file or dir')
+        raise FileNotFoundError(f'{path} is not a file or dir')
 
     if node.node_type == NodeType.dir:
         pkg_dir = node # should be the dir which has a file __main__.py
         main_file = pkg_dir.get_fileinfo('__main__.py')
         if not main_file.is_file():
-            raise RuntimeError(f'{main_file.path} is not a file')
+            raise FileNotFoundError(f'{main_file.path} is not a file')
     else:
         main_file = node # user may pass `pkg/__main__.py`
         pkg_dir = node.get_parent()
