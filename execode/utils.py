@@ -5,6 +5,7 @@
 #
 # ----------
 
+import sys
 from typing import Union
 
 from fsoopify import NodeType, NodeInfo, DirectoryInfo, FileInfo
