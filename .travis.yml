@@ -3,8 +3,10 @@ dist: xenial
 sudo: true
 python:
   - '3.7'
+install:
+  - pipenv install --dev
 script:
-  #- python -m pytest
+  - ":"
 deploy:
   provider: pypi
   user: $PYPI_USER
