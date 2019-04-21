@@ -6,8 +6,9 @@
 # ----------
 
 import sys
+import contextlib
 
-from fsoopify import DirectoryInfo, FileInfo, NodeInfo, NodeType
+from fsoopify import DirectoryInfo, FileInfo, NodeInfo, NodeType, Path
 
 def run_py(path: str, globals: dict=None, locals: dict=None):
     '''
@@ -20,8 +21,7 @@ def run_py(path: str, globals: dict=None, locals: dict=None):
     sys.path.insert(0, py_file.path.dirname)
     if globals is None:
         globals = {}
-    if locals is None:
-        locals = {}
+    globals['__file__'] = py_file.path
     globals['__name__'] = '__main__'
     exec(py_file.read_text(), globals, locals)
 
@@ -45,8 +45,18 @@ def run_py_m(path: str, globals: dict=None, locals: dict=None):
     sys.path.insert(0, pkg_dir.path.dirname)
     if globals is None:
         globals = {}
-    if locals is None:
-        locals = {}
+    globals['__file__'] = main_file.path
     globals['__name__'] = '__main__'
     globals['__package__'] = pkg_dir.path.name
     exec(main_file.read_text(), globals, locals)
+
+@contextlib.contextmanager
+def pipenv_run(pipfile_path):
+    from pipenv.project import Project
+    proj = Project(chdir=False)
+    proj._pipfile_location = pipfile_path
+    activate_this_path = Path(proj.virtualenv_location) / 'Scripts' / 'activate_this.py'
+    run_py(activate_this_path)
+    yield
+
+
