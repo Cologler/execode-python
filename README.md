@@ -1,1 +1,3 @@
-# execode-python
+# execode
+
+Tool for easy to run `.py`.
