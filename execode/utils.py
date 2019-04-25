@@ -29,7 +29,7 @@ def find_pipfile(node: Union[NodeInfo, str]):
         if not node:
             raise FileNotFoundError(f'{node} is not exists')
 
-    elif node.node_type == NodeType.file:
+    if node.node_type == NodeType.file:
         node = node.get_parent()
 
     return _find_pipfile(node, 10)

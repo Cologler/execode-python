@@ -32,6 +32,18 @@ def run_pym():
     from execode import run_py_m as rpm
     rpm(target_path)
 
+def pipenv_run_py():
+    import sys
+
+    if len(sys.argv) < 2:
+        raise RuntimeError('pipenv-run-py require at least python script path as arguments.')
+    target_path = sys.argv[1] # target script path
+
+    from execode.utils import find_pipfile
+    from execode import pipenv_context
+    with pipenv_context(find_pipfile(target_path)):
+        run_py()
+
 def pipenv_run_pym():
     import sys
 
