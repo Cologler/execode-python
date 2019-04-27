@@ -9,6 +9,7 @@ import dataclasses
 import sys
 from typing import Union
 from collections import namedtuple
+import contextlib
 
 from fsoopify import NodeType, NodeInfo, DirectoryInfo, FileInfo, Path
 
@@ -39,8 +40,16 @@ def find_pipfile(node: Union[NodeInfo, str]):
 @dataclasses.dataclass
 class PyInfo:
     path: Path
+    # if the .py file is not in a package, this is the path of the .py file.
+    # if the .py file is in a package, this is the path of the root_package/__init__.py.
     pkg_root: Path
+    # the full package name of the .py file.
+    # if the .py file is not in a package, this is the name of the .py file.
+    # if the .py file is in a package, this is the name of the package.
     pkg_name: str
+    # the package name of the .py file.
+    # if the .py file is not in a package, this is the name of the .py file.
+    # if the .py file is in a package, this is the name of the package and dot and the name of the .py file.
     name: str
 
     def get_sys_path_required(self):
@@ -107,3 +116,16 @@ def get_pkg_name(node: Union[NodeInfo, str]):
     '''
 
     return get_pyinfo(node).pkg_name
+
+
+@contextlib.contextmanager
+def use_path(path):
+    is_insert = path not in sys.path
+    if is_insert:
+        sys.path.insert(0, path)
+    yield
+    if is_insert:
+        try:
+            sys.path.remove(path)
+        except ValueError:
+            pass

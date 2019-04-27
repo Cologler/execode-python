@@ -9,8 +9,9 @@ import sys
 import runpy
 
 from fsoopify import FileInfo, NodeInfo, NodeType
+from .utils import use_path
 
-def run_py(path: str, globals: dict=None, locals: dict=None):
+def run_py(path: str):
     '''
     run a file like `python ?`.
     '''
@@ -19,12 +20,8 @@ def run_py(path: str, globals: dict=None, locals: dict=None):
     if not py_file.is_file():
         raise FileNotFoundError(f'{path} is not a file')
 
-    sys.path.insert(0, py_file.path.dirname)
-    if globals is None:
-        globals = {}
-    globals['__file__'] = py_file.path
-    globals['__name__'] = '__main__'
-    exec(py_file.read_text(), globals, locals)
+    with use_path(py_file.path.dirname):
+        return runpy.run_path(py_file.path, run_name='__main__')
 
 def run_py_m(path: str):
     '''
@@ -47,8 +44,8 @@ def run_py_m(path: str):
         main_file = node # user may pass `pkg/__main__.py`
         pkg_dir = node.get_parent()
 
-    sys.path.insert(0, pkg_dir.path.dirname)
-    return runpy.run_module(pkg_dir.path.name, run_name='__main__')
+    with use_path(pkg_dir.path.dirname):
+        return runpy.run_module(pkg_dir.path.name, run_name='__main__')
 
 def exec_pkg_py(path: str):
     '''
@@ -65,9 +62,5 @@ def exec_pkg_py(path: str):
         raise FileNotFoundError(f'{path} is not a file')
 
     pyinfo = get_pyinfo(node)
-
-    required = pyinfo.get_sys_path_required()
-    if required not in sys.path:
-        sys.path.insert(0, required)
-
-    return runpy.run_path(node.path, run_name=pyinfo.name)
+    with use_path(pyinfo.get_sys_path_required()):
+        return runpy.run_path(node.path, run_name=pyinfo.name)
