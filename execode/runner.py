@@ -50,7 +50,7 @@ def run_py_m(path: str):
     sys.path.insert(0, pkg_dir.path.dirname)
     return runpy.run_module(pkg_dir.path.name, run_name='__main__')
 
-def exec_pkg_py(path: str, globals: dict=None, locals: dict=None):
+def exec_pkg_py(path: str):
     '''
     exec a `.py` file which inside a package.
     the `.py` file can use relative import.
@@ -64,13 +64,10 @@ def exec_pkg_py(path: str, globals: dict=None, locals: dict=None):
     if not node.is_file():
         raise FileNotFoundError(f'{path} is not a file')
 
-    pi = get_pyinfo(node)
-    pkg_init = pi.pkg_root
-    pkg_dir = pkg_init.get_parent()
-    sys.path.insert(0, pkg_dir.get_parent())
-    if globals is None:
-        globals = {}
-    globals['__file__'] = pi.path
-    globals['__package__'] = pi.pkg_name
-    globals['__name__'] = pi.name
-    exec(node.read_text(), globals, locals)
+    pyinfo = get_pyinfo(node)
+
+    required = pyinfo.get_sys_path_required()
+    if required not in sys.path:
+        sys.path.insert(0, required)
+
+    return runpy.run_path(node.path, run_name=pyinfo.name)

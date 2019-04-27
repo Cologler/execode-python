@@ -5,11 +5,12 @@
 #
 # ----------
 
+import dataclasses
 import sys
 from typing import Union
 from collections import namedtuple
 
-from fsoopify import NodeType, NodeInfo, DirectoryInfo, FileInfo
+from fsoopify import NodeType, NodeInfo, DirectoryInfo, FileInfo, Path
 
 def find_pipfile(node: Union[NodeInfo, str]):
     '''
@@ -34,12 +35,17 @@ def find_pipfile(node: Union[NodeInfo, str]):
 
     return _find_pipfile(node, 10)
 
-PyInfo = namedtuple('PyInfo', [
-    'path',
-    'pkg_root',
-    'pkg_name',
-    'name',
-])
+
+@dataclasses.dataclass
+class PyInfo:
+    path: Path
+    pkg_root: Path
+    pkg_name: str
+    name: str
+
+    def get_sys_path_required(self):
+        return self.pkg_root.get_parent(2).get_abspath()
+
 
 def get_pyinfo(node: Union[NodeInfo, str]):
     store = {
