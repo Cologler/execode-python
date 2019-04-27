@@ -7,6 +7,7 @@
 
 import sys
 import runpy
+import importlib
 
 from fsoopify import FileInfo, NodeInfo, NodeType
 from .utils import use_path
@@ -52,7 +53,17 @@ def exec_pkg_py(path: str):
     exec a `.py` file which inside a package.
     the `.py` file can use relative import.
 
-    this is helpful for dynimic import some files.
+    this is helpful for dynimic exec some files.
+
+    #### diff between `run_py` and `exec_pkg_py`
+
+    - `run_py` run file by name `__name__`
+    - `exec_pkg_py` run file by name which same with when you direct import
+
+    #### diff between `exec_pkg_py` and `import_py`
+
+    - `exec_pkg_py` can run file twice
+    - `import_py` only run file once like you direct import
     '''
 
     from .utils import get_pyinfo
@@ -64,3 +75,22 @@ def exec_pkg_py(path: str):
     pyinfo = get_pyinfo(node)
     with use_path(pyinfo.get_sys_path_required()):
         return runpy.run_path(node.path, run_name=pyinfo.name)
+
+
+def import_py(path: str):
+    '''
+    import a `.py` file which inside a package or not.
+    the `.py` file can use relative import.
+
+    this is helpful for dynimic import some files.
+    '''
+
+    from .utils import get_pyinfo
+
+    node = NodeInfo.from_path(path)
+    if not node.is_file():
+        raise FileNotFoundError(f'{path} is not a file')
+
+    pyinfo = get_pyinfo(node)
+    with use_path(pyinfo.get_sys_path_required()):
+        return importlib.import_module(pyinfo.name)
