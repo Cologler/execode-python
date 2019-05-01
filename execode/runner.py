@@ -8,9 +8,13 @@
 import sys
 import runpy
 import importlib
+import importlib.util
 
 from fsoopify import FileInfo, NodeInfo, NodeType
+
+from .pyinfo import get_pyinfo
 from .utils import use_path
+
 
 def run_py(path: str):
     '''
@@ -66,8 +70,6 @@ def exec_pkg_py(path: str):
     - `import_py` only run file once like you direct import
     '''
 
-    from .utils import get_pyinfo
-
     node = NodeInfo.from_path(path)
     if not node.is_file():
         raise FileNotFoundError(f'{path} is not a file')
@@ -85,12 +87,9 @@ def import_py(path: str):
     this is helpful for dynimic import some files.
     '''
 
-    from .utils import get_pyinfo
-
     node = NodeInfo.from_path(path)
     if not node.is_file():
         raise FileNotFoundError(f'{path} is not a file')
 
     pyinfo = get_pyinfo(node)
-    with use_path(pyinfo.get_sys_path_required()):
-        return importlib.import_module(pyinfo.name)
+    pyinfo.import_module()
