@@ -5,10 +5,15 @@
 #
 # ----------
 
+import sys
 import abc
+import importlib
+import importlib.util
 from typing import Union, List
 
 from fsoopify import NodeType, NodeInfo, DirectoryInfo, FileInfo, Path
+
+from .finder import PATH_MAP
 
 class IPyInfo(abc.ABC):
     def __init__(self, path: Path, mro_name: List[str]):
@@ -51,16 +56,9 @@ class IPyInfo(abc.ABC):
     def get_sys_path_required(self):
         return self.get_top_package().path.get_parent(2).get_abspath()
 
+    @abc.abstractmethod
     def import_module(self):
-        if not self.is_top_module:
-            top = self.get_top_package()
-            top.import_module()
-
-        import importlib
-
-        spec = importlib.util.spec_from_file_location(self.name, self.path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.load_module()
+        raise NotImplementedError
 
 
 class PyFileInfo(IPyInfo):
@@ -80,6 +78,27 @@ class PyFileInfo(IPyInfo):
 
     def get_top_package(self):
         return self.get_parent_package().get_top_package()
+
+    def import_module(self):
+        try:
+            return sys.modules[self.name]
+        except KeyError:
+            pass
+
+        if self.is_top_module:
+            # single .py file
+            path = str(self.path)
+            spec = importlib.util.spec_from_file_location(self.name, path)
+            assert spec.name == self.name
+            # code is base on `importlib._bootstrap._load_unlocked()`
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[spec.name] = module
+            spec.loader.exec_module(module)
+            return module
+
+        else:
+            self.get_top_package()._setup_finder()
+            return importlib.import_module(self.name)
 
 
 class PyPackageInfo(IPyInfo):
@@ -105,6 +124,19 @@ class PyPackageInfo(IPyInfo):
             self._path.get_parent(len(self._mro_name)) / '__init__.py',
             [self._mro_name[0]]
         )
+
+    def _setup_finder(self):
+        assert self.is_top_module
+        PATH_MAP[self.name] = str(self.path.get_parent(2))
+
+    def import_module(self):
+        try:
+            return sys.modules[self.name]
+        except KeyError:
+            pass
+
+        self.get_top_package()._setup_finder()
+        return importlib.import_module(self.name)
 
 
 def get_pyinfo(node: Union[NodeInfo, str]):

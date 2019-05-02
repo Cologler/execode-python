@@ -13,7 +13,7 @@ import importlib.util
 from fsoopify import FileInfo, NodeInfo, NodeType
 
 from .pyinfo import get_pyinfo
-from .utils import use_path
+from .finder import use_path
 
 
 def run_py(path: str):
@@ -75,7 +75,10 @@ def exec_pkg_py(path: str):
         raise FileNotFoundError(f'{path} is not a file')
 
     pyinfo = get_pyinfo(node)
-    with use_path(pyinfo.get_sys_path_required()):
+    kwargs = {
+        pyinfo.get_top_package().name: pyinfo.get_sys_path_required()
+    }
+    with use_path(**kwargs):
         return runpy.run_path(node.path, run_name=pyinfo.name)
 
 

@@ -5,5 +5,5 @@
 #
 # ----------
 
-from .runner import run_py, run_py_m, exec_pkg_py
+from .runner import run_py, run_py_m, exec_pkg_py, import_py
 from .env import pipenv_context
