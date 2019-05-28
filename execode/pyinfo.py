@@ -37,7 +37,7 @@ class IPyInfo(abc.ABC):
         '''
         get whether the .py is a package or not.
 
-        return True when the path is a `__init__.py`
+        return True when the path endswith a `__init__.py`
         '''
         raise NotImplementedError
 
