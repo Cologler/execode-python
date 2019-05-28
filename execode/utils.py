@@ -13,18 +13,18 @@ import abc
 
 from fsoopify import NodeType, NodeInfo, DirectoryInfo, FileInfo, Path
 
-def find_pipfile(node: Union[NodeInfo, str]):
+def find_pipfile(node: Union[NodeInfo, str], depth: int = 10) -> Path:
     '''
     find the first parent dir which has `Pipfile`, return the path of the `Pipfile`.
     '''
 
-    def _find_pipfile(dir: DirectoryInfo, deep: int):
-        if deep == 0:
+    def _find_pipfile(dir: DirectoryInfo, depth: int):
+        if depth == 0:
             return None
         pf = dir.get_fileinfo('Pipfile')
         if pf.is_file():
             return pf.path
-        return _find_pipfile(dir.get_parent(), deep-1)
+        return _find_pipfile(dir.get_parent(), depth-1)
 
     if isinstance(node, str):
         node = NodeInfo.from_path(node)
@@ -33,8 +33,9 @@ def find_pipfile(node: Union[NodeInfo, str]):
 
     if node.node_type == NodeType.file:
         node = node.get_parent()
+        depth -= 1
 
-    return _find_pipfile(node, 10)
+    return _find_pipfile(node, depth)
 
 
 @contextlib.contextmanager
