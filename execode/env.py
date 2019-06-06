@@ -10,12 +10,14 @@ import contextlib
 from fsoopify import Path
 
 from .runner import run_py
+from .utils import find_pipenv_venv
 
 @contextlib.contextmanager
-def pipenv_context(pipfile_path):
-    from pipenv.project import Project
-    proj = Project(chdir=False)
-    proj._pipfile_location = pipfile_path
-    activate_this_path = Path(proj.virtualenv_location) / 'Scripts' / 'activate_this.py'
+def pipenv_context(cwd: str):
+    venv = find_pipenv_venv(cwd)
+    if not venv:
+        raise FileNotFoundError(f'unable to find venv for {cwd}')
+
+    activate_this_path = Path(venv) / 'Scripts' / 'activate_this.py'
     run_py(activate_this_path)
     yield

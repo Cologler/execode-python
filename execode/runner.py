@@ -23,7 +23,10 @@ def run_py(path: str):
     if not py_file.is_file():
         raise FileNotFoundError(f'{path} is not a file')
 
-    return runpy.run_path(py_file.path, run_name='__main__')
+    from .utils import use_path
+
+    with use_path(py_file.path.dirname):
+        return runpy.run_path(py_file.path, run_name='__main__')
 
 def run_py_m(path: str):
     '''
