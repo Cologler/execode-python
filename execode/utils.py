@@ -19,7 +19,7 @@ def find_pipfile(node: Union[NodeInfo, str], depth: int = 10) -> Path:
     '''
 
     def _find_pipfile(dir: DirectoryInfo, depth: int):
-        if depth == 0:
+        if dir is None or depth == 0:
             return None
         pf = dir.get_fileinfo('Pipfile')
         if pf.is_file():
