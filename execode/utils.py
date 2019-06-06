@@ -6,16 +6,18 @@
 # ----------
 
 import sys
-from typing import Union
+from typing import Union, Optional
 from collections import namedtuple
 import contextlib
 import abc
 
 from fsoopify import NodeType, NodeInfo, DirectoryInfo, FileInfo, Path
 
-def find_pipfile(node: Union[NodeInfo, str], depth: int = 10) -> Path:
+def find_pipfile(node: Union[NodeInfo, str], depth: int = 10) -> Optional[Path]:
     '''
     find the first parent dir which has `Pipfile`, return the path of the `Pipfile`.
+
+    return `None` if not found.
     '''
 
     def _find_pipfile(dir: DirectoryInfo, depth: int):
@@ -37,6 +39,16 @@ def find_pipfile(node: Union[NodeInfo, str], depth: int = 10) -> Path:
 
     return _find_pipfile(node, depth)
 
+def ensure_pipfile(node: Union[NodeInfo, str], depth: int = 10) -> Path:
+    '''
+    find the first parent dir which has `Pipfile`, return the path of the `Pipfile`.
+
+    raise `FileNotFoundError` if not found.
+    '''
+    pipfile = find_pipfile(node, depth)
+    if pipfile is None:
+        raise FileNotFoundError('unable to find Pipfile')
+    return pipfile
 
 @contextlib.contextmanager
 def use_path(path):
