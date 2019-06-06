@@ -47,7 +47,7 @@ def ensure_pipfile(node: Union[NodeInfo, str], depth: int = 10) -> Path:
     '''
     pipfile = find_pipfile(node, depth)
     if pipfile is None:
-        raise FileNotFoundError('unable to find Pipfile')
+        raise FileNotFoundError(f'unable to find Pipfile for {node}')
     return pipfile
 
 @contextlib.contextmanager
