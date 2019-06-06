@@ -13,20 +13,17 @@ import importlib.util
 from fsoopify import FileInfo, NodeInfo, NodeType
 
 from .pyinfo import get_pyinfo
-from .finder import use_path
 
 
 def run_py(path: str):
     '''
     run a file like `python ?`.
     '''
-
     py_file = FileInfo(path)
     if not py_file.is_file():
         raise FileNotFoundError(f'{path} is not a file')
 
-    with use_path(py_file.path.dirname):
-        return runpy.run_path(py_file.path, run_name='__main__')
+    return runpy.run_path(py_file.path, run_name='__main__')
 
 def run_py_m(path: str):
     '''
@@ -35,6 +32,7 @@ def run_py_m(path: str):
     `runpy.run_module()` only run the module in `sys.path`,
     but `run_py_m` can run the module from any path.
     '''
+    from .utils import use_path
 
     node = NodeInfo.from_path(path)
     if not node:
@@ -69,6 +67,7 @@ def exec_pkg_py(path: str):
     - `exec_pkg_py` can run file twice
     - `import_py` only run file once like you direct import
     '''
+    from .finder import use_path
 
     node = NodeInfo.from_path(path)
     if not node.is_file():
