@@ -50,6 +50,19 @@ def ensure_pipfile(node: Union[NodeInfo, str], depth: int = 10) -> Path:
         raise FileNotFoundError(f'unable to find Pipfile for {node}')
     return pipfile
 
+def find_pipenv_venv(cwd: str) -> Optional[str]:
+    '''
+    find venv path for pipenv by cwd.
+    '''
+
+    import subprocess
+
+    result = subprocess.run(['pipenv', '--venv'],
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+        encoding='utf-8', cwd=cwd)
+    if result.returncode == 0:
+        return result.stdout.strip()
+
 @contextlib.contextmanager
 def use_path(path):
     is_insert = path not in sys.path
